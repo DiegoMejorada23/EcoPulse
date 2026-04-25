@@ -78,6 +78,10 @@ header p {
   color: var(--text-muted);
 }
 
+#main-report-btn {
+  margin: 10px 0;
+}
+
 .stats-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -148,9 +152,11 @@ header p {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 400px;
+  width: 440px;
   z-index: 20;
   padding: 32px;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 #report-form-container.hidden {
@@ -189,7 +195,7 @@ header p {
   color: var(--text-muted);
 }
 
-select, textarea {
+select, textarea, .file-input {
   width: 100%;
   padding: 12px;
   background: rgba(255, 255, 255, 0.05);
@@ -197,6 +203,11 @@ select, textarea {
   border-radius: 8px;
   color: white;
   font-family: inherit;
+}
+
+.file-input {
+  padding: 8px;
+  font-size: 0.875rem;
 }
 
 textarea {
@@ -242,6 +253,14 @@ input[type="range"] {
 .btn:hover {
   transform: translateY(-2px);
   filter: brightness(1.1);
+}
+
+/* Popup Styles */
+.popup-content img {
+  width: 100%;
+  border-radius: 8px;
+  margin-top: 10px;
+  display: block;
 }
 
 /* Leaflet Customization */

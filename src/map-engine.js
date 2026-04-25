@@ -41,17 +41,26 @@ export class MapEngine {
     this.heatLayer.setLatLngs(points);
   }
 
-  addMarker(lat, lng, type, description) {
-    const marker = L.circleMarker([lat, lng], {
+  addMarker(report) {
+    const marker = L.circleMarker([report.lat, report.lng], {
       radius: 8,
-      fillColor: this.getTypeColor(type),
+      fillColor: this.getTypeColor(report.type),
       color: "#fff",
       weight: 2,
       opacity: 1,
       fillOpacity: 0.8
     }).addTo(this.markers);
 
-    marker.bindPopup(`<strong>${type.toUpperCase()}</strong><br>${description}`);
+    let popupContent = `
+      <div class="popup-content">
+        <strong>${report.type.toUpperCase()}</strong><br>
+        ${report.description}
+        ${report.photo ? `<img src="${report.photo}" alt="Report photo">` : ''}
+        <br><small>${new Date(report.timestamp).toLocaleString()}</small>
+      </div>
+    `;
+
+    marker.bindPopup(popupContent);
     return marker;
   }
 
