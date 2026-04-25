@@ -5,9 +5,18 @@ import { store } from './store';
 // State
 let currentCoords = null;
 let heatmapVisible = true;
+let currentView = 'landing';
+let currentOnboardingStep = 1;
 
 // UI Elements
-const sidebar = document.getElementById('sidebar');
+const views = document.querySelectorAll('.view');
+const navLinks = document.querySelectorAll('[data-link]');
+const onboardingSteps = document.querySelectorAll('.step');
+const onboardingDots = document.querySelectorAll('.dot');
+const nextOnboardingBtn = document.getElementById('next-onboarding');
+const loginForm = document.getElementById('login-form');
+
+// App-View Elements
 const reportFormContainer = document.getElementById('report-form-container');
 const reportForm = document.getElementById('report-form');
 const reportsList = document.getElementById('reports-list');
@@ -20,41 +29,100 @@ const mainReportBtn = document.getElementById('main-report-btn');
 const toast = document.getElementById('toast');
 const photoInput = document.getElementById('photo-upload');
 
-// Initialize Map
-const engine = new MapEngine('map');
+// Initialize Map Engine
+let engine = null;
 
 // Initial Load
 function init() {
-  const reports = store.getReports();
-  updateUI(reports);
-  
-  // Register Map Click
-  engine.onMapClick((lat, lng) => {
-    currentCoords = { lat, lng };
-    showForm(lat, lng);
-  });
+  setupNavigation();
+  setupOnboarding();
+  setupLogin();
 
-  mainReportBtn.addEventListener('click', () => {
-    showToast('Click anywhere on the map to set the problem location.');
+  // Check if already logged in / finished onboarding
+  const hasFinishedOnboarding = localStorage.getItem('ecopulse_onboarded');
+  if (hasFinishedOnboarding) {
+    // Start on landing but let them jump in
+  }
+}
+
+// --- Navigation Logic ---
+function setupNavigation() {
+  navLinks.forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const viewId = link.getAttribute('data-link');
+      navigateTo(viewId);
+    });
   });
 }
 
+function navigateTo(viewId) {
+  views.forEach(v => v.classList.add('hidden'));
+  const targetView = document.getElementById(`${viewId}-view`);
+  if (targetView) {
+    targetView.classList.remove('hidden');
+    currentView = viewId;
+
+    // Initialize Map if entering app view
+    if (viewId === 'app' && !engine) {
+      setTimeout(() => {
+        engine = new MapEngine('map');
+        const reports = store.getReports();
+        updateUI(reports);
+        
+        engine.onMapClick((lat, lng) => {
+          currentCoords = { lat, lng };
+          showForm(lat, lng);
+        });
+      }, 100);
+    } else if (viewId === 'app' && engine) {
+      updateUI(store.getReports());
+    }
+  }
+}
+
+// --- Login Logic ---
+function setupLogin() {
+  loginForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    showToast('Login successful! Welcome to EcoPulse.');
+    navigateTo('app');
+  });
+}
+
+// --- Onboarding Logic ---
+function setupOnboarding() {
+  nextOnboardingBtn.addEventListener('click', () => {
+    if (currentOnboardingStep < 3) {
+      currentOnboardingStep++;
+      updateOnboarding();
+    } else {
+      localStorage.setItem('ecopulse_onboarded', 'true');
+      navigateTo('login');
+    }
+  });
+}
+
+function updateOnboarding() {
+  onboardingSteps.forEach((s, i) => {
+    s.classList.toggle('active', i === currentOnboardingStep - 1);
+  });
+  onboardingDots.forEach((d, i) => {
+    d.classList.toggle('active', i === currentOnboardingStep - 1);
+  });
+  nextOnboardingBtn.textContent = currentOnboardingStep === 3 ? 'Get Started' : 'Next';
+}
+
+// --- App (Map) Logic ---
 function updateUI(reports) {
-  // Update Stats
+  if (!engine) return;
   const stats = store.getStats();
   totalReportsEl.textContent = stats.total;
-  hotspotCountEl.textContent = Math.ceil(stats.total / 3); // Simple heuristic
+  hotspotCountEl.textContent = Math.ceil(stats.total / 3);
 
-  // Update Heatmap
   engine.updateHeatmap(reports);
-
-  // Update Markers
   engine.markers.clearLayers();
-  reports.forEach(r => {
-    engine.addMarker(r);
-  });
-
-  // Update List
+  reports.forEach(r => engine.addMarker(r));
   renderList(reports);
 }
 
@@ -100,12 +168,11 @@ async function fileToBase64(file) {
   });
 }
 
-// Event Listeners
+// --- Event Listeners for Map Form ---
 closeFormBtn.addEventListener('click', hideForm);
 
 reportForm.addEventListener('submit', async (e) => {
   e.preventDefault();
-  
   if (!currentCoords) {
     showToast('Error: Please select a location on the map first.');
     return;
@@ -116,7 +183,6 @@ reportForm.addEventListener('submit', async (e) => {
   
   if (file) {
     try {
-      // Limit file size to ~1MB to avoid LocalStorage limits
       if (file.size > 1024 * 1024) {
         showToast('Image is too large. Please use an image under 1MB.');
         return;
@@ -148,6 +214,10 @@ reportForm.addEventListener('submit', async (e) => {
       showToast('Failed to save report.');
     }
   }
+});
+
+mainReportBtn.addEventListener('click', () => {
+  showToast('Click anywhere on the map to set the problem location.');
 });
 
 toggleHeatmapBtn.addEventListener('click', () => {
