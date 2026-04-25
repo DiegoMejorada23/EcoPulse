@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EcoPulse | Local Environment Heatmap</title>
+    <meta name="description" content="Track and visualize local environmental issues with EcoPulse's interactive heatmap.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  </head>
+  <body>
+    <div id="app">
+      <div id="map"></div>
+      
+      <!-- Overlay UI -->
+      <aside id="sidebar" class="glass">
+        <header>
+          <h1>EcoPulse</h1>
+          <p>Local Environment Monitor</p>
+        </header>
+
+        <button id="main-report-btn" class="btn primary">Report an Issue</button>
+        
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="label">Total Reports</span>
+            <span id="total-reports" class="value">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="label">Hotspots</span>
+            <span id="hotspot-count" class="value">0</span>
+          </div>
+        </div>
+
+        <section class="recent-activity">
+          <h3>Recent Alerts</h3>
+          <ul id="reports-list">
+            <li class="empty-state">No reports yet. Click the map to start.</li>
+          </ul>
+        </section>
+
+        <footer>
+          <button id="toggle-heatmap" class="btn secondary">Toggle Heatmap</button>
+        </footer>
+      </aside>
+
+      <!-- Reporting Form (Floating/Modal) -->
+      <div id="report-form-container" class="glass hidden">
+        <button id="close-form" class="close-btn">&times;</button>
+        <form id="report-form">
+          <h2>Report Issue</h2>
+          <p class="subtitle">Location: <span id="display-coords">Select on map</span></p>
+          
+          <div class="form-group">
+            <label for="issue-type">Issue Category</label>
+            <select id="issue-type" required>
+              <option value="" disabled selected>Select category</option>
+              <option value="waste">Illegal Dumping</option>
+              <option value="noise">Noise Pollution</option>
+              <option value="infra">Infrastructure Damage</option>
+              <option value="water">Water Leakage</option>
+              <option value="air">Air Quality/Smoke</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="severity">Severity Level (1-5)</label>
+            <input type="range" id="severity" min="1" max="5" step="1" value="3">
+            <div class="range-labels">
+              <span>Minor</span>
+              <span>Critical</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" placeholder="Briefly describe the problem..." required></textarea>
+          </div>
+
+          <button type="submit" class="btn primary">Submit Report</button>
+        </form>
+      </div>
+
+      <!-- Toast Notification -->
+      <div id="toast" class="toast hidden"></div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
